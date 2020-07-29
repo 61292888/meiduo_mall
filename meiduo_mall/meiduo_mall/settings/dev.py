@@ -10,11 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
-import os
+import os,sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# sys.path是一个列表，里面存放的到爆的查询路径
+sys.path.insert(
+    0,
+    os.path.join(BASE_DIR,'apps')
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -25,7 +30,10 @@ SECRET_KEY = '(g^hvl#0!0__!t0x3q%ikjkau@bh_+e9n24yox7ea=t%nf8na('
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# django运行绑定的域名
+ALLOWED_HOSTS = ['www.meiduo.site']
+# django运行所以合法的域名
+# ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,13 +45,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'corsheaders', # 安装cors应用
+
+    # 注册应用（导包路径）
+    'users',
+    'verifications',
 ]
 
+
 MIDDLEWARE = [
+
+    # 告诉浏览器是否允许跨域访问
+    'corsheaders.middleware.CorsMiddleware',
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -142,6 +161,21 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
+
+    "verify_code": {  # 验证码信息: 存到 2 号库
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://127.0.0.1:6379/2",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        },
+"sms_code": { # 存储验证码数据
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
 }
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "session"
@@ -187,3 +221,38 @@ LOGGING = {
         },
     }
 }
+
+# 指定本项目使用我们自定义的模型类:
+AUTH_USER_MODEL = 'users.User'
+
+
+# 跨域白名单
+CORS_ORIGIN_WHITELIST = [
+    'http://127.0.0.1:8080',
+    'http://www.meiduo.site:8080',
+]
+
+# 允许在不同主机之间传递cookie数据
+CORS_ALLOW_CREDENTIALS = True
+
+
+# 指定自定义的用户认证后端:
+AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']
+
+
+# 发送短信的相关设置, 这些设置是当用户没有发送相关字段时, 默认使用的内容:
+# 发送短信必须进行的设置:
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# 我们使用的 smtp服务器 地址
+EMAIL_HOST = 'smtp.163.com'
+# 端口号
+EMAIL_PORT = 25
+# 下面的内容是可变的, 随后台设置的不同而改变:
+# 发送邮件的邮箱
+EMAIL_HOST_USER = 'jason_bf@163.com'
+# 在邮箱中设置的客户端授权密码
+EMAIL_HOST_PASSWORD = 'MFHOQTRJJEEUAPAW'
+# 收件人看到的发件人
+EMAIL_FROM = '美多商城工作室<jason_bf@163.com>'
+# 邮箱验证链接
+EMAIL_VERIFY_URL = 'http://www.meiduo.site:8080/success_verify_email.html?token='
