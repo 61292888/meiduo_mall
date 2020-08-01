@@ -23,5 +23,11 @@ urlpatterns = [
     re_path(r'^emails/$',EmailView.as_view()),
     # 验证并激活邮箱接口
     re_path(r'^emails/verification/$', VerifyEmailView.as_view()),
+    # 新增收货地址
+    re_path(r'^addresses/create/$', CreateAddressView.as_view()),
+    # 展示地址
+    re_path(r'^addresses/$', AddressView.as_view()),
+    # 修改地址
+    re_path(r'^addresses/(?P<address_id>\d+)/$', UpdateDestroyAddressView.as_view()),
 
 ]

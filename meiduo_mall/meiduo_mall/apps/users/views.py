@@ -278,3 +278,285 @@ class VerifyEmailView(View):
         user.save()
 
         return JsonResponse({'code': 0, 'errmsg': '邮箱激活成功！'})
+
+from .models import Address
+# 新增用户地址
+class CreateAddressView(View):
+
+    # def post(self, request):
+    #     # 1、提取参数
+    #     data = json.loads(request.body.decode())
+    #     receiver = data.get('receiver')
+    #     province_id = data.get('province_id')
+    #     city_id = data.get('city_id')
+    #     district_id = data.get('district_id')
+    #     place = data.get('place') # 详细地址
+    #     mobile = data.get('mobile')
+    #     tel = data.get('tel')
+    #     email = data.get('email')
+    #
+    #     # 判断用户地址数量是否超过20个
+    #     user = request.user
+    #     count = Address.objects.filter(user=user).count()
+    #     if count >= 20:
+    #         return JsonResponse({'code': 400, 'errmsg': '数量超限'})
+    #
+    #
+    #     # 2、校验参数
+    #     if not all([receiver, province_id, city_id, district_id, place, mobile]):
+    #         return JsonResponse({"code": 400, 'errmsg': '缺少参数！'})
+    #
+    #     if not re.match(r'^1[3-9]\d{9}$', mobile):
+    #         return JsonResponse({'code': 400,
+    #                              'errmsg': '参数mobile有误'})
+    #     if tel:
+    #         if not re.match(r'^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
+    #             return JsonResponse({'code': 400,
+    #                                  'errmsg': '参数tel有误'})
+    #     if email:
+    #         if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+    #             return JsonResponse({'code': 400,
+    #                                  'errmsg': '参数email有误'})
+    #
+    #     # 3、新建用户地址
+    #     try:
+    #         address = Address.objects.create(
+    #             user=user,
+    #             province_id=province_id,
+    #             city_id=city_id,
+    #             district_id=district_id,
+    #             title=receiver, # 当前地址的标题，默认收货人名称就作为地址标题
+    #             receiver=receiver,
+    #             place=place,
+    #             mobile=mobile,
+    #             tel=tel
+    #         )
+    #
+    #         # 如果当前新增地址的时候，用户没有设置默认地址，那么
+    #         # 我们把当前新增的地址设置为用户的默认地址
+    #         if not user.default_address:
+    #             user.default_address = address
+    #             user.save()
+    #
+    #     except Exception as e:
+    #         print(e)
+    #         return JsonResponse({'code': 400, 'errmsg': '新增地址失败！'})
+    #
+    #     address_info = {
+    #         "id": address.id,
+    #         "title": address.title,
+    #         "receiver": address.receiver,
+    #
+    #         "province": address.province.name,
+    #         "city": address.city.name,
+    #         "district": address.district.name,
+    #
+    #         "place": address.place,
+    #         "mobile": address.mobile,
+    #         "tel": address.tel,
+    #         "email": address.email
+    #     }
+    #
+    #     # 4、返回响应
+    #     return JsonResponse({
+    #         'code': 0,
+    #         'errmsg': 'ok',
+    #         'address': address_info
+    #     })
+    def post(self, request):
+
+        data = json.loads(request.body.decode())
+        user = request.user
+        receiver = data.get('receiver')
+        province_id = data.get('province_id')
+        city_id = data.get('city_id')
+        district_id = data.get('district_id')
+        place = data.get('place')
+        mobile = data.get('mobile')
+        tel = data.get('tel')
+        email = data.get('email')
+
+        if not all([receiver, province_id, city_id, district_id, place, mobile]):
+            return JsonResponse({"code": 400, 'errmsg': '缺少参数！'})
+
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return JsonResponse({'code': 400,
+                                 'errmsg': '参数mobile有误'})
+        if tel:
+            if not re.match(r'^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
+                return JsonResponse({'code': 400,
+                                     'errmsg': '参数tel有误'})
+        if email:
+            if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+                return JsonResponse({'code': 400,
+                                     'errmsg': '参数email有误'})
+
+        try:
+            address = Address.objects.create(
+                user=user,
+                province_id=province_id,
+                city_id=city_id,
+                district_id=district_id,
+                title=receiver,  # 当前地址的标题，默认收货人名称就作为地址标题
+                receiver=receiver,
+                place=place,
+                mobile=mobile,
+                tel=tel)
+
+            if not user.default_address:
+                user.default_address = address
+                user.save()
+
+
+        except Exception as e:
+            return JsonResponse({'code': 400,
+                                 'errmsg': '新增地址错误'})
+
+        address_info = {
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
+        }
+
+        return JsonResponse({'code': 0,
+                             'errmsg': 'OK',
+                             'address': address_info})
+
+
+# 网页地址展示接口
+# 本质：把当前用户所有地址信息返回
+class AddressView(View):
+
+    def get(self, request):
+        # 1、根据用户，过滤出当前用户的所有地址
+        user = request.user
+        addresses = Address.objects.filter(
+            user=user
+        )
+
+        # 2、把地址转化成字典
+        address_list = []
+        for address in addresses:
+            if address.id != user.default_address_id:
+                # address：每一个地址对象
+                address_list.append({
+                    'id': address.id,
+                    'title': address.title,
+                    'receiver': address.receiver,
+                    'province': address.province.name,
+                    'city': address.city.name,
+                    'district': address.district.name,
+                    'place': address.place,
+                    'mobile': address.mobile,
+                    'tel': address.tel,
+                    'email': address.email
+                })
+            else:
+                address_list.insert(0, {
+                    'id': address.id,
+                    'title': address.title,
+                    'receiver': address.receiver,
+                    'province': address.province.name,
+                    'city': address.city.name,
+                    'district': address.district.name,
+                    'place': address.place,
+                    'mobile': address.mobile,
+                    'tel': address.tel,
+                    'email': address.email
+                })
+
+        # 3、构建响应返回
+        return JsonResponse({
+            'code': 0,
+            'errmsg': 'ok',
+            'default_address_id': user.default_address_id,
+            'addresses': address_list
+        })
+
+# 更新地址接口
+class UpdateDestroyAddressView(View):
+
+    def put(self, request, address_id):
+
+        # 1、获取被更新的地址
+        try:
+            address = Address.objects.get(pk=address_id)
+        except Address.DoesNotExist as e:
+            print(e)
+            return JsonResponse({'code': 400, 'errmsg': '资源未找到！'})
+
+        # 2、提取参数
+        data = json.loads(request.body.decode())
+        receiver = data.get('receiver')
+        province_id = data.get('province_id')
+        city_id = data.get('city_id')
+        district_id = data.get('district_id')
+        place = data.get('place')  # 详细地址
+        mobile = data.get('mobile')
+        tel = data.get('tel')
+        email = data.get('email')
+
+        # 3、校验参数
+        if not all([receiver, province_id, city_id, district_id, place, mobile]):
+            return JsonResponse({"code": 400, 'errmsg': '缺少参数！'})
+
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return JsonResponse({'code': 400,
+                                 'errmsg': '参数mobile有误'})
+        if tel:
+            if not re.match(r'^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
+                return JsonResponse({'code': 400,
+                                     'errmsg': '参数tel有误'})
+        if email:
+            if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+                return JsonResponse({'code': 400,
+                                     'errmsg': '参数email有误'})
+
+
+        address.receiver = receiver
+        address.province_id = province_id
+        address.city_id = city_id
+        address.district_id = district_id
+        address.place = place
+        address.mobile = mobile
+        address.tel = tel
+        address.email = email
+        address.save()
+
+        # data = {"receiver": "韦小宝宝"}
+        # update(**data) -->  update(receiver="韦小宝宝")
+        # data.pop('province')
+        # data.pop('city')
+        # data.pop('district')
+        # Address.objects.filter(pk=address_id).update(**data)
+        # address = Address.objects.get(pk=address_id)
+
+        address_info = {
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
+        }
+
+        return JsonResponse({
+            'code': 0,
+            'errmsg': 'ok',
+            'address': address_info
+        })

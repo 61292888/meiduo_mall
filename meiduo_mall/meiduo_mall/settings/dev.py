@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'verifications',
     # QQ登入
     'oauth',
+    # 收货地址
+    'areas',
 ]
 
 
