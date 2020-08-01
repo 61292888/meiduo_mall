@@ -22,4 +22,6 @@ urlpatterns = [
     re_path(r"",include("users.urls")),
 
     re_path('', include('verifications.urls')),
+    # oauth
+    re_path('', include('oauth.urls')),
 ]

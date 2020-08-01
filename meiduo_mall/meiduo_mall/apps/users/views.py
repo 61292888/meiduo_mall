@@ -41,7 +41,7 @@ class UsernameCountView(View):
             return JsonResponse({
                 'code': 0,
                 'errmsg': 'ok',
-                'count': count
+                'count': count,
             })
 
 
