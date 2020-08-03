@@ -26,4 +26,8 @@ urlpatterns = [
     re_path('', include('oauth.urls')),
     # areas:
     path('', include('areas.urls')),
+    # 广告
+    path('', include('contents.urls')),
+    # 商品
+    path('', include('goods.urls')),
 ]

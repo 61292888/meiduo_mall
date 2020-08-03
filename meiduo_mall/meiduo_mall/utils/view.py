@@ -1,25 +1,16 @@
-from  django.http import JsonResponse
 
-def my_decorator(func):
-    """ 自定义的装饰器：判断是否登入 """
-    def wrapper(request,*args,**kwargs):
+from django.http import JsonResponse
+
+
+
+# 定义一个装饰器，验证是否已经登陆
+def login_required(func):
+    # func：是视图函数
+    def wrapper(request, *args, **kwargs):
+        # 添加功能代码
         if request.user.is_authenticated:
-            # 如果用户正常登入，则进入这里，正常执行
-            return  func(request,*args,**kwargs)
+            return func(request, *args, **kwargs)
         else:
-            # 如果用户未登入，则进入这里，返回400状态码
-            return JsonResponse({
-                'code':400,
-                'errmsg':"请登入后重试"
-            },status=401)
-    return  wrapper
+            return JsonResponse({'code': 400, 'errmsg': '您未登陆！'})
 
-
-class LoginRequiredMixin(object):
-    """ 自定义的Mixin的扩展类 """
-    # 重写的as_view 方法
-    @classmethod
-    def as_view(cls,**initkwargs):
-        view = super().as_view(**initkwargs)
-        # 调用上面的装饰器进行过滤处理
-        return my_decorator(view)
+    return wrapper

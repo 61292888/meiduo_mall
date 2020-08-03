@@ -55,6 +55,10 @@ INSTALLED_APPS = [
     'oauth',
     # 收货地址
     'areas',
+    # 广告
+    'contents',
+    # 商品
+    'goods'
 ]
 
 

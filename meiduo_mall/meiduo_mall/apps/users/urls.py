@@ -10,17 +10,14 @@ urlpatterns = [
     re_path(r'^mobiles/(?P<mobile>1[3-9]\d{9})/count/$', MobileCountView.as_view()),
     # 注册
     re_path(r'^register/$', RegisterView.as_view()),
-
     # 用户名登录的子路由:
-    # re_path(r'^login/$',LoginView.as_view()),
-    # 用户名登录的子路由:
-    re_path(r'^login/$',LoginView.as_view()),
-    # 退出登录
-    re_path(r'^logout/$',LogoutView.as_view()),
+    re_path(r'^login/$', LoginView.as_view()),
+    # 登出
+    re_path(r'^logout/$', LogoutView.as_view()),
     # 用户中心的子路由
-    re_path(r'^info/$',UserInfoView.as_view()),
+    re_path(r'^info/$', UserInfoView.as_view()),
     # 更新邮箱
-    re_path(r'^emails/$',EmailView.as_view()),
+    re_path(r'^emails/$', EmailView.as_view()),
     # 验证并激活邮箱接口
     re_path(r'^emails/verification/$', VerifyEmailView.as_view()),
     # 新增收货地址
@@ -29,5 +26,10 @@ urlpatterns = [
     re_path(r'^addresses/$', AddressView.as_view()),
     # 修改地址
     re_path(r'^addresses/(?P<address_id>\d+)/$', UpdateDestroyAddressView.as_view()),
-
+    # 修改默认地址
+    re_path(r'^addresses/(?P<address_id>\d+)/default/$', DefaultAddressView.as_view()),
+    # 修改标题
+    re_path(r'^addresses/(?P<address_id>\d+)/title/$', UpdateTitleAddressView.as_view()),
+    # 修改密码
+    re_path(r'^password/$', ChangePasswordView.as_view()),
 ]
