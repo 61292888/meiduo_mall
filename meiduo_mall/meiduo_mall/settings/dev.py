@@ -58,7 +58,11 @@ INSTALLED_APPS = [
     # 广告
     'contents',
     # 商品
-    'goods'
+    'goods',
+    # 定时任务
+    'django_crontab',
+    # 全文检索
+    'haystack',
 ]
 
 
@@ -83,7 +87,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
 
         # 指定django工程的模板参数
-        'DIRS': [os.path.join(BASE_DIR,'TEMPLATES')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -273,3 +277,56 @@ QQ_CLIENT_ID = '101474184'
 QQ_CLIENT_SECRET = 'c6ce949e04e12ecc909ae6a8b09b637c'
 # 我们申请时添加的: 登录成功后回调的路径
 QQ_REDIRECT_URI = 'http://www.meiduo.site:8080/oauth_callback.html'
+
+
+# 指定当前工程使用的存储后端
+DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fastdfs_storage.FastDFSStorage'
+
+
+
+
+# 指定fdfs服务器的域名
+FDFS_URL = "http://image.meiduo.site:8888/"
+
+
+# 静态页面文件根目录
+# BASE_DIR = "/Users/weiwei/Desktop/meiduo_mall_sz38/meiduo_mall/meiduo_mall"
+GENERATED_STATIC_HTML_FILES_DIR = os.path.join(
+    # os.path.dirname(
+        os.path.dirname(BASE_DIR),
+    # ), # "/Users/weiwei/Desktop/meiduo_mall_sz38/"
+    'front_end_pc'
+)
+
+# 指定定时任务执行规则
+CRONJOBS = [
+    (
+        # 分 时 日 月 周
+
+        # ====周期执行=====
+        # '30 * * * *', # 每个小时的第30分钟执行一次
+        # '30 12 * * *', # 每天的12点的第30分钟执行一次
+
+        # ====时间间隔执行=====
+        '*/1 * * * *', # 每间隔1分钟
+        # '*/1 */2 * * *', # 每间隔2小时零1分钟
+
+        'contents.generate_index.generate_static_index_html',
+        '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log')
+    ),
+]
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.22.153:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+# 可以在 dev.py 中添加如下代码, 用于决定每页显示数据条数:
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5

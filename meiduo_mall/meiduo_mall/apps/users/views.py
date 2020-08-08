@@ -213,6 +213,7 @@ class LoginView(View):
         return response
 
 
+
 # from django.contrib.auth.mixins import LoginRequiredMixin
 # 用户中心页接口
 # class UserInfoView(LoginRequiredMixin, View):
@@ -343,7 +344,8 @@ class CreateAddressView(View):
                 receiver=receiver,
                 place=place,
                 mobile=mobile,
-                tel=tel
+                tel=tel,
+                email=email,
             )
 
             # 如果当前新增地址的时候，用户没有设置默认地址，那么
@@ -582,28 +584,24 @@ class UpdateTitleAddressView(View):
 
 
 
-# # 修改用户密码
-# class ChangePasswordView(View):
+# 修改用户密码
 class ChangePasswordView(View):
-    def put(self, request):
 
-         # 1、提取参数
+    def put(self, request):
+        # 1、提取参数
         data = json.loads(request.body.decode())
         old_password = data.get('old_password')
         new_password = data.get('new_password')
         new_password2 = data.get('new_password2')
+
+        # 2、校验参数
         if not all([old_password, new_password, new_password2]):
-            return JsonResponse({'code': 400, 'errmsg': '参数缺失'})
+            return JsonResponse({'code':400, 'errmsg': '参数缺失'})
 
-
+        # 新密码格式校验
         if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password):
             return JsonResponse({'code': 400,
-                                 'errmsg': '密码最少8位,最长20位'})
-
-#         # 新密码格式校验
-        if not re.match(r'^[0-9A-Za-z]{8,20}$', new_password):
-            return JsonResponse({'code': 400,
-                        'errmsg': '密码最少8位,最长20位'})
+                             'errmsg': '密码最少8位,最长20位'})
         # 两次输入是否一致校验
         if new_password != new_password2:
             return JsonResponse({'code': 400,
@@ -619,7 +617,7 @@ class ChangePasswordView(View):
 
         # 3、更新数据
         user.set_password(new_password)
-
+        user.save()
         # 补充逻辑：清楚登陆状态
         logout(request)
 
